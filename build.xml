@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Hello是工程名，testng是最后一个target的name-->
+<project name="Akuvox" default="testng" basedir=".">
+    <!-- 导入的外部包 -->
+    <target name="external package">
+        <echo  message ="第一步配置外部包"/>
+        <!--
+        <taskdef resource="testngtasks" classpath="lib/testng-5.12.jar"/>
+        -->
+        <taskdef resource="testngtasks">
+            <classpath>
+                <pathelement location="lib/testng-6.8.5.jar" />
+            </classpath>
+        </taskdef>
+    </target>
+    <!-- 源文件 -->
+    <target name="source" depends="external package">
+        <echo  message ="第二步配置源文件"/>    
+        <property name="srcdir" location="src" />
+        <property name="libdir" location="lib" />
+		<property name="configdir" location="config" />
+        <property name="full-compile" value="true" />
+    </target>
+    <!-- 路径 -->
+    <target name="path" depends="source">
+        <echo  message ="第三步配置classpath路径"/>
+        <path id="classpath.base" />
+        <path id="classpath.test">
+            <fileset dir="${libdir}">
+                <include name="**/*.jar" />
+            </fileset>
+            <!--<pathelement location="test" />-->
+            <pathelement location="${srcdir}" />
+            <path refid="classpath.base" />
+        </path>
+    </target>
+    <!-- 清理 -->
+    <target name="clean" depends="path">
+        <echo  message ="第四步配置清理"/>
+        <delete verbose="${full-compile}">
+            <fileset dir="${srcdir}" includes="**/*.class" />
+        </delete>
+    </target>
+    <!-- 编译 -->
+    <target name="compile" depends="clean">
+        <echo  message ="第五步配置编译"/>
+        <javac encoding="utf-8" srcdir="${srcdir}" destdir="${srcdir}" verbose="${full-compile}" includeAntRuntime="false">
+            <classpath refid="classpath.test" />
+        </javac>
+    </target>
+    <!-- testng自动化测试 -->
+    <target name="testng" depends="compile">
+        <echo  message ="第六步配置自动化测试"/>
+        <!-- testoutput测试结果是输出路径 -->
+        <testng outputdir="test-output" classpathref="classpath.test">
+            <!-- testng.xml配置在src目录下 -->
+            <xmlfileset dir="${configdir}" includes="akuvox.xml" />
+        </testng>
+    </target>
+</project>
