@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="suite" verbose="5">
+	<test name="test">
+		<classes>
+			<class name="com.test.AutopTest">
+		<!-- 	<class name="com.testscripts.DataManageTest"/> -->
+			 <methods>
+				<include name="auto_test"/>
+				<!-- <include name="stress_test"/>	-->
+				<include name="test_protect"/>
+				<include name="test_no_protect"/>
+				</methods>
+			</class>
+		</classes>
+	</test>
+	<listeners>
+        <listener class-name="org.uncommons.reportng.HTMLReporter"/>
+    	<listener class-name="org.uncommons.reportng.JUnitXMLReporter"/>
+    </listeners>
+</suite>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Table name="蛛网配置信息">
+	<Record name="ip"  value="192.168.88.100" remark="测试网站的ip，默认是旧硬件"/>
+	<Record name="ip_new"  value="192.168.88.102" remark="测试网站的ip，新硬件"/>
+	<Record name="account"  value="admin" remark="测试网站的IP"/>
+	<Record name="passwd"  value="admin" remark="登录密码"/>
+	<Record name="server_ip"  value="192.168.88.199" remark="ftp/tftp/http/https所在的服务器地址"/>
+	<Record name="server_port"  value="22" remark="ftp/tftp/http/https所在的服务器端口"/>
+	<Record name="server_account"  value="root" remark="ftp/tftp/http/https所在的服务器账号"/>
+	<Record name="server_passwd"  value="123456" remark="ftp/tftp/http/https所在的服务器密码"/>
+	<Record name="test_result"  value="/file/test_result/test_result.info" remark="测试结果保留保留"/>
+	<Record name="run_count"  value="50" remark="运行次数"/>
+	<Record name="is_first_clear_testresult"  value="true" remark="第一次测试的时候是否清除结果"/>
+	<Record name="new_version"  value="113.207.6.3" remark="测试的新版本号"/>
+	<Record name="old_version"  value="113.207.4.176" remark="测试的旧版本号"/>
+	<Record name="protect_version"  value="113.30.4.91" remark="测试的旧版本号"/>
+	<Record name="no_protect_version"  value="113.30.4.87" remark="测试的旧版本号"/>
+	<Record name="autop_config_file"  value="/file/r000000000113.cfg" remark="autop的配置在server的详细位置"/>
+<!--	<Record name="autop_protocol"  value="tftp" remark="测试的旧版本号"/> -->
+</Table>

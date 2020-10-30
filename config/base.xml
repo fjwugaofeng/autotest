@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data remark="账号基本配置信息">
+	<Record name="account"  value="admin" remark="登录的用户名"/>
+	<Record name="passwd"  value="admin" remark="登录的密码"/>
+	<Record name="mac"  value="0C110507F842" remark="MAC地址"/>
+	<Record name="softversion"  value="" remark="软件版本"/>
+	<Record name="hardwareversion"  value="" remark="硬件版本"/>
+	<Record name="sshaccount"  value="admin" remark="ssh账号"/>
+	<Record name="sshpassword"  value="admin" remark="ssh密码"/>
+	<Record name="sshway"  value="admin" remark="ssh方式"/>
+</data>

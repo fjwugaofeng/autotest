@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Datas remark="测试的数据-">
+	<First_Menu name="Status">
+		<Second_Menu name="Basic">
+			<Record locate="cFirmwareVersion" locatetype="id" checkway=""  remark="" /> 
+		</Second_Menu>
+	</First_Menu>
+	<First_Menu name="Intercom">
+		<Second_Menu name="Basic">
+			<Record locate="cFirmwareVersion" testdate="id" checkdata="" checkway="" remark="" /> 
+		</Second_Menu>
+	</First_Menu>
+</Datas>

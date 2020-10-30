@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Datas remark="定位元素">
+	<First_Menu name="login_logout" remark="">
+		<Second_Menu name="login" remark="">
+			<Record id="username" locate="username" locatetype="id" remark="登录页面的账号" /> 
+			<Record id="password" locate="password" locatetype="id" remark="登录界面的密码" /> 
+			<Record id="Login" locate="Login" locatetype="id" remark="登录界面的登录按钮" /> 
+			<Record id="tPageLogOut" locate="tPageLogOut" locatetype="id" remark="主页面的退出按钮" /> 
+		</Second_Menu>
+	</First_Menu>
+	<First_Menu name="common" remark="通用模块">
+		<Second_Menu name="common" remark="">
+			<Record id="fPageSubmit" locate="fPageSubmit" locatetype="id" remark="全局的提交按钮" /> 
+			<Record id="fPageCancel" locate="fPageCancel" locatetype="id" remark="全局的取消按钮" />
+			<Record id="mid_cont1" locate="mid_cont1" locatetype="id" remark="点击atuop后弹出的界面" />
+			<Record id="mid_cont2" locate="mid_cont2" locatetype="id" remark="点击atuop后弹出的界面" />
+			<Record id="tShowForAutoP" locate="//*[@id='tShowForAutoP']" locatetype="xpath" remark="点击autop后弹出提示信息" />
+			<Record id="PageUL" locate="PageUL" locatetype="id" remark="主页面总的标签" />
+			<Record id="main-message" locate="main-message" locatetype="id" remark="主页面总的标签" />
+		</Second_Menu>
+	</First_Menu>
+	<First_Menu name="Status" remark="状态">
+		<Second_Menu name="Basic" remark="">
+			<Record id="cFirmwareVersion" locate="cFirmwareVersion" locatetype="id" remark="软件版本号" /> 
+		</Second_Menu>
+	</First_Menu>
+	<First_Menu name="Upgrade" remark="升级">
+		<Second_Menu name="Advanced" remark="高级">
+			<Record id="cManualUpdateURL" locate="cManualUpdateURL" locatetype="name" remark="设置autop的url" /> 
+			<Record id="cServerUserName" locate="cServerUserName" locatetype="name" remark="设置autop的账号" /> 
+			<Record id="cServerPwd" locate="cServerPwd" locatetype="name" remark="设置autop的密码" /> 
+			<Record id="cSystemLogLevel" locate="cSystemLogLevel" locatetype="id" remark="日志级别" /> 
+			<Record id="cRemoteSystemLog" locate="cRemoteSystemLog" locatetype="id" remark="是否开启远程日志" /> 
+			<Record id="cRemoteSystemServer" locate="cRemoteSystemServer" locatetype="id" remark="远程日志的ip" /> 
+			<Record id="AutoPConfirmBtn" locate="AutoPConfirmBtn" locatetype="id" remark="手动autop的标签" /> 
+		</Second_Menu>
+	</First_Menu>
+</Datas>
