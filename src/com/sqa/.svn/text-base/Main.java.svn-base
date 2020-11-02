@@ -42,6 +42,7 @@ public class Main {
 	public static int [] start_month = {6,7,7,6};//表示开始统计的月份，第一个表示福州软件部，第二个表示嵌入式软件部，第三个表示系统软件部，第四个表示只能软件部
 	public static int branch_1 = 3;
 	public static int branch_2= 2;
+	public  static String First_Type_Name = "产品问题数";
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -50,22 +51,89 @@ public class Main {
 		List<Integer> mm = get_current_quarter();
 		Map<String, List<Integer>> am = get_all_month();
 		Main m= new Main();
-//		for (int i = 0; i < starts.length; i++) {
-//			NUMBER_START = starts[i];
-//			OFFSET = offsets[i];
-//			//写入季度
-//			m.create_file(i);
-//		}
-//		m.improving_data(mm, am);
-//		NUMBER_START = starts[0];
-//		m.write_detail_data_to_old();
+		for (int i = 0; i < starts.length; i++) {
+			NUMBER_START = starts[i];
+			OFFSET = offsets[i];
+			//写入季度
+			m.create_file(i);
+		}
+		m.improving_data(mm, am);
+		NUMBER_START = starts[0];
+		m.write_detail_data_to_old();
 
 		//调试信息
-		NUMBER_END = 3;
-		NUMBER_START= 4;
-		OFFSET =1;
-		m.create_file(0);
-		m.write_detail_data_to_old();
+//		NUMBER_END = 3;
+//		NUMBER_START= 4;
+//		OFFSET =1;
+//		m.create_file(0);
+//		m.write_detail_data_to_old();
+		
+//		m.new_to_old();
+	}
+	
+	public void  new_to_old() {
+		int currmonthday = Integer.parseInt(get_tongjidate());
+		int lastmonthday = currmonthday -1;
+		int month = currmonthday % 100;
+		int lastmonth = month -1;
+		File files = new File("qa");
+		for (File f : files.listFiles()) {
+			if (f.getName().endsWith(".xlsx")/*&&!f.getName().contains("20")*/) {
+				String fileName = f.getName();
+				if (fileName.contains(currmonthday+"")) {
+					fileName=fileName.replace(currmonthday+"", "");
+				}else {
+					continue;
+				}
+				String project = fileName.substring(0,fileName.indexOf("."));
+				//上个月文件的文件名
+				String lastFileName = "qa/"+project + lastmonthday + ".xlsx";
+				//读取数据
+				List<String[]> this_month_data = ExcelHelper.readExcel(f.getAbsolutePath(), qa, 1);	
+				List<String[]> last_month_data = ExcelHelper.readExcel(lastFileName, qa, 1);	
+				
+				//更新月数据
+				int[] strat_p1 =get_coordinate(this_month_data, First_Type_Name);
+				int[] strat_p2 =get_coordinate(last_month_data, lastmonth+"月");
+				int[] strat_p3 =get_coordinate(last_month_data, First_Type_Name);
+				List<String[]> monthData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[0]);
+				ExcelHelper.updatacell(lastFileName, qa, monthData, strat_p3[0], strat_p2[1]+1);
+				
+				//更新季度数据
+				List<String[]> jiduData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[1]);
+				int q = Math.floorDiv(month, 3);
+				String jidu = "";
+				if (q==0) {
+					jidu = "Q1";
+				}else if (q==1) {
+					jidu = "Q2";
+				}else if (q==2) {
+					jidu = "Q3";
+				}else if (q==3) {
+					jidu = "Q4";
+				}
+				int[] strat_p4 =get_coordinate(last_month_data, jidu);
+				ExcelHelper.updatacell(lastFileName, qa, jiduData, strat_p3[0], strat_p4[1]);
+				
+				//更新总数据
+				List<String[]> allData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[2]);
+				int[] strat_p5 =get_coordinate(last_month_data, "合计");
+				ExcelHelper.updatacell(lastFileName, qa, allData, strat_p3[0], strat_p5[1]);
+			}
+		}
+		
+		
+		
+	}
+	
+	public List<String[]> get_line_data(List<String[]> datas, int rowNum,int cloumn) {
+		List<String[]> nnnn = new ArrayList<String[]>();
+		for (int i = rowNum; i < datas.size(); i++) {
+			String line[] = new String[1];
+			line[0] = datas.get(i)[cloumn];
+			nnnn.add(line);
+		}
+		return nnnn;
 	}
 	
 	public void write_detail_data_to_old() {

@@ -33,7 +33,7 @@ public class Main {
 	public static String appType = "'App - VBell','App - SmartPlus','App - VFone'";
 	public static String zhuanyi = "&amp;";
 	public static String FILTER = "当月预期交付需求已交付数";
-	public static String Remove_Branch="'A05','R50V3','X915','X916','XL10','R29C-B','R20B-T30','X933','R49'";
+	public static String Remove_Branch="'A05','R50V3','X915','X916','XL10','R29C-B','R20B-T30','X933','R49','A01'";
 	public static boolean WRITE_TO_EXCEL = true;
 	public String src_file_name="";
 	public String dst_file_name="";
@@ -48,9 +48,9 @@ public class Main {
 		// TODO Auto-generated method stub
 		set_num_end();
 		starts = set_number();
-		List<Integer> mm = get_current_quarter();
-		Map<String, List<Integer>> am = get_all_month();
 		Main m= new Main();
+		/*List<Integer> mm = get_current_quarter();
+		Map<String, List<Integer>> am = get_all_month();
 		for (int i = 0; i < starts.length; i++) {
 			NUMBER_START = starts[i];
 			OFFSET = offsets[i];
@@ -59,13 +59,13 @@ public class Main {
 		}
 		m.improving_data(mm, am);
 		NUMBER_START = starts[0];
-		m.write_detail_data_to_old();
+		m.write_detail_data_to_old();*/
 
 		//调试信息
-//		NUMBER_END = 3;
-//		NUMBER_START= 4;
-//		OFFSET =1;
-//		m.create_file(0);
+		NUMBER_END = 0;
+		NUMBER_START= 1;
+		OFFSET =1;
+		m.create_file(0);
 //		m.write_detail_data_to_old();
 		
 //		m.new_to_old();
