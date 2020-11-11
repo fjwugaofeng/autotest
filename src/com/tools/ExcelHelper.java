@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -539,51 +540,92 @@ public static void get_link(Workbook workbook, Cell cell, String type, String bu
 	cell.setCellStyle(hlink_style);
 }
 
-/**
- * 删除对应xlsx中的数据，从执行的start_row开始，从0开始
- * @param fileName
- * @param sheetname
- * @param start_row
- */
-public static void clear_data(String fileName,String sheetname,int start_row) {
-	Workbook workbook = null;
-	FileInputStream inputStream =null;
-	Sheet sheet = null;
-	// 以文件的形式输出工作簿对象
-    FileOutputStream fileOut = null;
-	try {
-        // 获取Excel后缀名
-//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-        // 获取Excel文件
-        File excelFile = new File(fileName);
-        if (!excelFile.exists()) {
-//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
-        	return;
-        }else {
-        	inputStream = new FileInputStream(excelFile);
-        	workbook = new XSSFWorkbook(inputStream);
-        	sheet = workbook.getSheet(sheetname);
-		}
-        
-        int rowNum = sheet.getLastRowNum();
-        for (int i = start_row; i <= rowNum; i++) {
-//        	System.out.println(i);
-        	Row row = sheet.getRow(i);
-        	// 删除行的内容
-        	if (row != null) {
-        		sheet.removeRow(row);
+	/**
+	 * 删除对应xlsx中的数据，从执行的start_row开始，从0开始
+	 * @param fileName
+	 * @param sheetname
+	 * @param start_row
+	 */
+	public static void clear_data(String fileName,String sheetname,int start_row) {
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+		try {
+	        // 获取Excel后缀名
+	//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+	        // 获取Excel文件
+	        File excelFile = new File(fileName);
+	        if (!excelFile.exists()) {
+	//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
+	        	return;
+	        }else {
+	        	inputStream = new FileInputStream(excelFile);
+	        	workbook = new XSSFWorkbook(inputStream);
+	        	sheet = workbook.getSheet(sheetname);
 			}
+	        
+	        int rowNum = sheet.getLastRowNum();
+	        for (int i = start_row; i <= rowNum; i++) {
+	//        	System.out.println(i);
+	        	Row row = sheet.getRow(i);
+	        	// 删除行的内容
+	        	if (row != null) {
+	        		sheet.removeRow(row);
+				}
+			}
+	        
+	        
+	        fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+	            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+	        } finally {
+	            try {
+	                if (null != fileOut) {
+	                    fileOut.close();
+	                }
+	                if (null != inputStream) {
+						inputStream.close();
+					}
+	                if (null != workbook) {
+	                    workbook.close();
+	                }
+	            } catch (IOException e) {
+	                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
+	            }
 		}
-        
-        
-        fileOut = new FileOutputStream(excelFile);
-        workbook.write(fileOut);
-        fileOut.flush();
-        } catch (Exception e) {
-        	e.printStackTrace();
-            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
-        } finally {
-            try {
+	}
+	
+	/**
+	 * 
+	 */
+	public static void merge_cell(String fileName,String sheetname) {
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+		try {
+			 File excelFile = new File(fileName);
+			 String excel_Name = excelFile.getName();
+			 int lastdot = excelFile.getName().lastIndexOf(".");
+			 inputStream = new FileInputStream(excelFile);
+			workbook = getWorkbook(inputStream, excel_Name.substring(lastdot+1));
+			sheet = workbook.getSheet(sheetname);
+			CellRangeAddress region = new CellRangeAddress(1,1,2,2);
+			sheet.addMergedRegion(region);
+			fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
+	        System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+		} finally {
+			try {
                 if (null != fileOut) {
                     fileOut.close();
                 }
@@ -596,7 +638,9 @@ public static void clear_data(String fileName,String sheetname,int start_row) {
             } catch (IOException e) {
                 System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
             }
+		}
+	
+		
 	}
-}
 
 }
