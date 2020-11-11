@@ -635,6 +635,43 @@ public class XlsOpreation {
 	}
 	
 	/**
+	 * 获取某个值在哪个sheet里面
+	 * @param path
+	 * @param reg
+	 * @param row 行坐标
+	 * @param cloumn 列坐标
+	 * @return
+	 */
+	public int getSheetNum(String path,String reg,int cloumn,int row)
+	{
+		int sheetNum=0;
+		try {
+			wb=Workbook.getWorkbook(new File(path));
+			Sheet[] sheets = wb.getSheets();
+			for(int i = 0 ; i < sheets.length; i++) {
+				Sheet sheet = sheets[i];
+				String tmp = "";
+				try {
+					tmp = sheet.getCell(cloumn,row).getContents();
+				} catch (Exception e) {
+					continue;
+				}
+				if (tmp.equals(reg)) {
+					sheetNum = i;
+					break;
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally{
+			if(wb!=null) wb.close();
+		}
+		return sheetNum;
+	}
+	
+	
+	/**
 	 * 
 	 * @param i 横坐标，从0开始
 	 * @param j 纵坐标，从0开始

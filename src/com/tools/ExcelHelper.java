@@ -15,7 +15,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -26,6 +25,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFDataFormat;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelHelper {
@@ -408,8 +408,12 @@ public static void updatacell(String fileName,String sheetname, List<String[]> l
         }else {
         	inputStream = new FileInputStream(excelFile);
         	workbook = new XSSFWorkbook(inputStream);
+        	XSSFFont font = new XSSFFont();
         	sheet = workbook.getSheet(sheetname);
         	cs = workbook.createCellStyle();
+        	//粗体显示
+        	font.setBold(true);
+        	cs.setFont(font);
         	//对齐方式设置
         	cs.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
         	cs .setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
@@ -422,6 +426,9 @@ public static void updatacell(String fileName,String sheetname, List<String[]> l
         	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
         	cs.setBorderTop(BorderStyle.THIN);
         	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
+        	
+        	
+        	
 //			workbook = getWorkbook(inputStream, fileType);
 //			sheet = workbook.getSheet(sheetname);
 		}

@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.tools.*;
 
+
 public class Main {
 
 //	public static String url = "jdbc:mysql:192.168.88.99:3306/zantao";
@@ -43,13 +44,14 @@ public class Main {
 	public static int branch_1 = 3;
 	public static int branch_2= 2;
 	public  static String First_Type_Name = "产品问题数";
+	public static String [] calculate_type = {"线上缺陷泄漏率-产品问题数-新增bug数-chu","需求消化率-当月预期交付需求已交付数-每月预期交付需求-chu","需求已交付的及时交付率-当月预期已交付中的及时交付数-当月预期交付需求已交付数-chu","每月遗留需求数-每月预期交付需求-当月预期交付需求已交付数-jian"};
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		set_num_end();
 		starts = set_number();
 		Main m= new Main();
-		/*List<Integer> mm = get_current_quarter();
+		List<Integer> mm = get_current_quarter();
 		Map<String, List<Integer>> am = get_all_month();
 		for (int i = 0; i < starts.length; i++) {
 			NUMBER_START = starts[i];
@@ -59,16 +61,16 @@ public class Main {
 		}
 		m.improving_data(mm, am);
 		NUMBER_START = starts[0];
-		m.write_detail_data_to_old();*/
+		m.write_detail_data_to_old();
+		m.new_to_old();
 
 		//调试信息
-		NUMBER_END = 0;
-		NUMBER_START= 1;
-		OFFSET =1;
-		m.create_file(0);
+//		NUMBER_END = 1;
+//		NUMBER_START= 2;
+//		OFFSET =1;
+//		m.create_file(0);
 //		m.write_detail_data_to_old();
 		
-//		m.new_to_old();
 	}
 	
 	public void  new_to_old() {
@@ -86,6 +88,9 @@ public class Main {
 					continue;
 				}
 				String project = fileName.substring(0,fileName.indexOf("."));
+				//计算数据更新到最新
+				calcute_data(project.substring(fileName.indexOf("】")+1), f.getAbsolutePath());
+				
 				//上个月文件的文件名
 				String lastFileName = "qa/"+project + lastmonthday + ".xlsx";
 				//读取数据
@@ -119,6 +124,12 @@ public class Main {
 				List<String[]> allData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[2]);
 				int[] strat_p5 =get_coordinate(last_month_data, "合计");
 				ExcelHelper.updatacell(lastFileName, qa, allData, strat_p3[0], strat_p5[1]);
+				
+				String newFileName = f.getAbsolutePath();
+				//修改文件名
+				f.renameTo(new File("qa/"+project + currmonthday + "_src.xlsx"));
+				File oldF = new File(lastFileName);
+				oldF.renameTo(new File(newFileName));
 			}
 		}
 		
@@ -153,9 +164,6 @@ public class Main {
 				write_detail_data(project, new_file_name);
 			}
 		}
-				
-				
-	
 	}
 	
 	public void improving_data(List<Integer> mm,Map<String, List<Integer>> am) {
@@ -370,13 +378,61 @@ public class Main {
 //				写入数据
 //				done(project, newFileName);
 				write_statistical_data(project, newFileName);
-				
 				//删除旧的文件
 				f.delete();
 			}else {
 				continue;
 			}
 		}
+	}
+	
+	public void calcute_data(String project,String fileName) {
+		
+		List<String[]> ls = ExcelHelper.readExcel(fileName, qa, 0);
+		int allsize = 0;
+		if (project.equals("智能软件部")||project.equals("系统软件部")||project.equals("嵌入式软件部")) {
+			allsize=branch_1;
+		}else if (project.equals("福州软件部")) {
+			allsize=branch_2;
+		}
+		DecimalFormat df = new DecimalFormat("0.00%");
+		for (int k = 0; k < offsets.length; k++) {
+			for (int i = 0; i < calculate_type.length; i++) {
+				String tmp[] = calculate_type[i].split("-");
+				//获取统计值的位置
+				int p1[] = get_coordinate(ls, tmp[0]);
+				//获取分子的位置
+				int p2[] = get_coordinate(ls, tmp[1]);
+				//获取分母的位置
+				int p3[] = get_coordinate(ls, tmp[2]);
+				
+				List<String[]> data = new ArrayList<String[]>();
+				
+				//计算对应的值
+				for (int j = 0; j < allsize+1; j++) {
+					String line[]  = new String[1];
+					String fenzi = ls.get(p2[0]+j)[p2[1]+offsets[k]];
+					String fenmu = ls.get(p3[0]+j)[p3[1]+offsets[k]];
+//					System.out.println(tmp[0]+"\t"+fenzi+"\t"+fenmu);
+					if (tmp[3].equals("chu")) {
+						Integer inter = Integer.parseInt(fenmu);
+						if (inter == 0) {
+							inter = 1;
+						}
+						float rate = Float.parseFloat(fenzi)/inter;
+						line[0] = df.format(rate);
+					}else if (tmp[3].equals("jian")) {
+						Integer inter = Integer.parseInt(fenzi)-Integer.parseInt(fenmu);
+						line[0] = inter+"";
+					}
+					
+					data.add(line);
+				}
+				//更新到excle表中
+				ExcelHelper.updatacell(fileName, qa, data, p1[0], p1[1]+offsets[k]);
+			}
+		}
+		
 	}
 	
 	public static void done(String xiangmu,String file){

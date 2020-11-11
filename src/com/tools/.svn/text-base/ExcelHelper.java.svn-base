@@ -22,7 +22,10 @@ import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFDataFormat;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelHelper {
@@ -405,10 +408,15 @@ public static void updatacell(String fileName,String sheetname, List<String[]> l
         }else {
         	inputStream = new FileInputStream(excelFile);
         	workbook = new XSSFWorkbook(inputStream);
+        	XSSFFont font = new XSSFFont();
         	sheet = workbook.getSheet(sheetname);
         	cs = workbook.createCellStyle();
+        	//粗体显示
+        	font.setBold(true);
+        	cs.setFont(font);
         	//对齐方式设置
-        	cs.setAlignment(HorizontalAlignment.CENTER);
+        	cs.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
+        	cs .setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
             //边框颜色和宽度设置
         	cs.setBorderBottom(BorderStyle.THIN);
         	cs.setBottomBorderColor(IndexedColors.BLACK.getIndex()); // 下边框
@@ -418,6 +426,9 @@ public static void updatacell(String fileName,String sheetname, List<String[]> l
         	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
         	cs.setBorderTop(BorderStyle.THIN);
         	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
+        	
+        	
+        	
 //			workbook = getWorkbook(inputStream, fileType);
 //			sheet = workbook.getSheet(sheetname);
 		}
@@ -431,8 +442,41 @@ public static void updatacell(String fileName,String sheetname, List<String[]> l
         	Cell cell = null;
         	for (int j = 0; j < line.length; j++) {
         		cell = row.createCell(j+cloumnindex);
-        		cell.setCellValue(line[j]);
-        		cell.setCellStyle(cs);
+        		String data = line[j];
+        		
+        		Boolean isNum = false;//data是否为数值型
+                Boolean isInteger=false;//data是否为整数
+                Boolean isPercent=false;//data是否为百分数
+                if (data != null || "".equals(data)) {
+                    //判断data是否为数值型
+                    isNum = data.toString().matches("^(-?\\d+)(\\.\\d+)?$");
+                    //判断data是否为整数（小数部分是否为0）
+                    isInteger=data.toString().matches("^[-\\+]?[\\d]*$");
+                    //判断data是否为百分数（是否包含“%”）
+                    isPercent=data.toString().contains("%");
+                }
+                
+              //如果单元格内容是数值类型，涉及到金钱（金额、本、利），则设置cell的类型为数值型，设置data的类型为数值类型
+                if (isNum && !isPercent) {
+                	
+                	XSSFDataFormat df = (XSSFDataFormat) workbook.createDataFormat(); // 此处设置数据格式
+                    if (isInteger) {
+                        cs.setDataFormat(df.getFormat("#,#0"));//数据格式只显示整数
+                    }else{
+                    	cs.setDataFormat(df.getFormat("#,##0.00"));//保留两位小数点
+                    }                   
+                    // 设置单元格格式
+                    cell.setCellStyle(cs);
+                    // 设置单元格内容为double类型
+                    cell.setCellValue(Double.parseDouble(data.toString()));
+                } else {
+                    cell.setCellStyle(cs);
+                    // 设置单元格内容为字符型
+                    cell.setCellValue(data.toString());
+                }
+//        		
+//        		cell.setCellValue(data);
+//        		cell.setCellStyle(cs);
         	}
         	
         }
