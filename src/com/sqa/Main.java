@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -62,7 +63,8 @@ public class Main {
 		m.improving_data(mm, am);
 		NUMBER_START = starts[0];
 		m.write_detail_data_to_old();
-		m.new_to_old();
+		m.new_to_old();		
+		m.updateCellFormula();
 
 		//调试信息
 //		NUMBER_END = 1;
@@ -70,6 +72,120 @@ public class Main {
 //		OFFSET =1;
 //		m.create_file(0);
 //		m.write_detail_data_to_old();
+		
+	}
+	
+	public void updateCellFormula() {
+		String tongjidata = get_tongjidate();
+		String year = tongjidata.substring(0,4);
+		String month = tongjidata.substring(4);
+
+		SimpleDateFormat sdf3 = new SimpleDateFormat("yyyy-MM-dd");
+		int day= 0;
+		try {
+			day =CommonTools.getDaysOfMonth(sdf3.parse(year+"-"+month+"-01"));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		System.out.println(year+"\t"+month+"\t"+day);
+		
+		//拼接对应的月份开始和结束日期
+		String start_date = tongjidata+"01";
+		String end_data =tongjidata+day;
+		
+		int q = CommonTools.getQuarterOfYear(Integer.parseInt(month));
+		
+		File files = new File("qa");
+		for (File f : files.listFiles()) {
+			if (f.getName().endsWith(".xlsx")&&!f.getName().contains("_src")/*&&!f.getName().contains("20")*/) {
+				String fileName = f.getName();
+				if (!fileName.contains(tongjidata+"")) {
+					continue;
+				}
+				
+				List<String[]> excelDatas = ExcelHelper.readExcel(f.getAbsolutePath(), qa, 0);
+				
+				String project = fileName.substring(fileName.indexOf("】")+1,fileName.indexOf("."));
+				String title = year+"Q"+q+"研发部"+project+"质量报告（"+start_date+"-"+end_data+"）";
+//				System.out.println(title);
+				
+				int p0[] = get_coordinate(excelDatas, month+"月");
+				int p1[] = get_coordinate(excelDatas, "备注");
+				String cloumnV = ExcelHelper.numToExcel(p0[1]);
+				
+				ExcelHelper.updatacell(f.getAbsolutePath(), qa, title, -1, 0);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, 0, 0, 0, p1[1]);
+				
+				//设置本月故障数据				
+				int p1_1[] = get_coordinate(excelDatas, "对外承诺SLA：",2);
+				int p1_2[] = get_coordinate(excelDatas, "对外承诺SLA");
+				String guzhang = "\"本月故障 \"&"+cloumnV+(p1_2[0]+2)+"&\" 起\"";				
+				ExcelHelper.setCellFormula(f.getAbsolutePath(), qa, guzhang, p1_1[0]+1, p1_1[1]+2);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, p1_1[0]+1, p1_1[0]+1, p1_1[1]+2, p1[1]);
+//				System.out.println(guzhang+"\t"+(p1_1[0]+1)+"\t"+(p1_1[1]+2));
+				
+				//设置1. 产品问题：
+				int p2_1[] = get_coordinate(excelDatas, "1. 产品问题：");
+				int p2_2[] = get_coordinate(excelDatas, "产品问题数");
+				List<String[]> problems = ExcelHelper.readExcel(f.getAbsolutePath(), "Y产品问题", 0);
+				int count=0;
+//				int p2_3[]=get_coordinate(problems, "关单是否达标");
+				for(String lll[]:problems) {
+					if (lll[9].equals("是")) {
+						count++;
+					}
+				}
+				String pecent = "";
+				if (problems.size()==1) {
+					pecent = "0%";
+				}else {
+					float rate = (float)count/(problems.size()-1);
+					DecimalFormat df = new DecimalFormat("0.00%");
+					pecent = df.format(rate);
+				}
+				String project_pro = "\"共收到\"&"+cloumnV+(p2_2[0]+2)+"&\"个问题工单，解决达标率为"+pecent+" ；\"";	
+				ExcelHelper.setCellFormula(f.getAbsolutePath(), qa, project_pro, p2_1[0]+1, p2_1[1]+2);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, p2_1[0]+1, p2_1[0]+1, p2_1[1]+2, p1[1]);
+//				System.out.println(project_pro+"\t"+(p2_1[0]+1)+"\t"+(p2_1[1]+2));
+				
+				//设置2. 版本质量：
+				int p3_1[] = get_coordinate(excelDatas, "2. 版本质量：");
+				int p3_2[] = get_coordinate(excelDatas, "交付版本数");
+				String version_qa = "\"成功发布 \"&"+cloumnV+(p3_2[0]+2)+"&\" 个版本；\"";				
+				ExcelHelper.setCellFormula(f.getAbsolutePath(), qa, version_qa, p3_1[0]+1, p3_1[1]+2);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, p3_1[0]+1, p3_1[0]+1, p3_1[1]+2, p1[1]);
+//				System.out.println(version_qa+"\t"+(p3_1[0]+1)+"\t"+(p3_1[1]+2));
+				
+				//设置3. 研发内部质量：
+				int p4_1[] = get_coordinate(excelDatas, "3. 研发内部质量：");
+				int p4_2[] = get_coordinate(excelDatas, "新增bug数");
+				int p4_3[] = get_coordinate(excelDatas, "低级问题数");
+				int p4_4[] = get_coordinate(excelDatas, "重开问题数");
+				int p4_5[] = get_coordinate(excelDatas, "总遗留bug数");
+				
+				String total_left_bug = excelDatas.get(p4_5[0])[p0[1]];
+				total_left_bug = total_left_bug.substring(0,total_left_bug.indexOf("("));
+				
+//				String dev_qa = "\"本月新增缺陷：\"&"+cloumnV+(p4_2[0]+2)+"&\"个，低级缺陷：\"&"+cloumnV+(p4_3[0]+2)+"&\"个，重开缺陷：\"&"+cloumnV+(p4_4[0]+2)+"&\"个，总遗留bug：\"&"+cloumnV+(p4_5[0]+2)+"&\" 个；\"";
+				String dev_qa = "\"本月新增缺陷：\"&"+cloumnV+(p4_2[0]+2)+"&\"个，低级缺陷：\"&"+cloumnV+(p4_3[0]+2)+"&\"个，重开缺陷：\"&"+cloumnV+(p4_4[0]+2)+"&\"个，总遗留bug："+total_left_bug+" 个；\"";
+				ExcelHelper.setCellFormula(f.getAbsolutePath(), qa, dev_qa, p4_1[0]+1, p4_1[1]+2);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, p4_1[0]+1, p4_1[0]+1, p4_1[1]+2, p1[1]);
+//				System.out.println(dev_qa+"\t"+(p4_1[0]+1)+"\t"+(p4_1[1]+2));
+				
+				//设置4. 需求交付：
+				int p5_1[] = get_coordinate(excelDatas, "4. 需求交付：");
+				int p5_2[] = get_coordinate(excelDatas, "当月预期交付需求已交付数");
+				int p5_3[] = get_coordinate(excelDatas, "需求消化率");
+				int p5_4[] = get_coordinate(excelDatas, "需求已交付的及时交付率");
+				String story = "\"本月预期交付需求已交付\"&"+cloumnV+(p5_2[0]+2)+"&\"个需求，需求消化率：\"&"+cloumnV+(p5_3[0]+2)+"&\"，需求交付及时率：\"&"+cloumnV+(p5_4[0]+2)+"&\"；\"";				
+				ExcelHelper.setCellFormula(f.getAbsolutePath(), qa, story, p5_1[0]+1, p5_1[1]+2);
+				ExcelHelper.merge_cell(f.getAbsolutePath(), qa, p5_1[0]+1, p5_1[0]+1, p5_1[1]+2, p1[1]);
+//				System.out.println(story+"\t"+(p5_1[0]+1)+"\t"+(p5_1[1]+2));
+//				System.out.println();
+				
+			}
+		}
 		
 	}
 	
@@ -103,6 +219,9 @@ public class Main {
 				int[] strat_p3 =get_coordinate(last_month_data, First_Type_Name);
 				List<String[]> monthData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[0]);
 				ExcelHelper.updatacell(lastFileName, qa, monthData, strat_p3[0], strat_p2[1]+1);
+				
+				//把这个月写入进去
+				ExcelHelper.updatacell(lastFileName, qa, (lastmonth+1)+"月", strat_p2[0], strat_p2[1]+1);
 				
 				//更新季度数据
 				List<String[]> jiduData = get_line_data(this_month_data, strat_p1[0], strat_p1[1]+offsets[1]);
@@ -1612,6 +1731,30 @@ public class Main {
 					position[1] = j;
 					flag = true;
 					break;
+				}
+			}
+			if (flag) {
+				return position;
+			}
+		}
+		return null;
+	}
+	
+	public static int[] get_coordinate(List<String[]> ll, String name,int index) {
+		int [] position = new int[2];
+		int count = 0;
+		for (int i = 0; i < ll.size(); i++) {
+			String line[] = ll.get(i);
+			boolean flag =false;
+			for(int j = 0; j< line.length; j++) {
+				if (name.equals(line[j])) {
+					count++;
+					position[0] = i;
+					position[1] = j;
+					if (count==index) {
+						flag = true;
+						break;
+					}
 				}
 			}
 			if (flag) {

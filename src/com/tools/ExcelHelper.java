@@ -13,6 +13,7 @@ import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -26,7 +27,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFDataFormat;
-import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelHelper {
@@ -127,6 +127,7 @@ public class ExcelHelper {
 
              // 解析每一行的数据，构造数据对象
              int rowStart = firstRowNum + 1;
+//             int rowStart = firstRowNum;
 //             int rowEnd = sheet.getPhysicalNumberOfRows();
              int rowEnd = sheet.getLastRowNum();
              
@@ -155,390 +156,423 @@ public class ExcelHelper {
          return resultDataList;
      }
 
-/**
- * 将单元格内容转换为字符串
- * @param cell
- * @return
- */
-private static String convertCellValueToString(Cell cell) {
-    if(cell==null){
-        return null;
-    }
-    String returnValue = null;
-    switch (cell.getCellType()) {
-        case NUMERIC:   //数字
-            Double doubleValue = cell.getNumericCellValue();
-
-            // 格式化科学计数法，取一位整数
-            DecimalFormat df = new DecimalFormat("0");
-            returnValue = df.format(doubleValue);
-            break;
-        case STRING:    //字符串
-            returnValue = cell.getStringCellValue();
-            break;
-        case BOOLEAN:   //布尔
-            Boolean booleanValue = cell.getBooleanCellValue();
-            returnValue = booleanValue.toString();
-            break;
-        case BLANK:     // 空值
-            break;
-        case FORMULA:   // 公式
-            returnValue = cell.getCellFormula();
-            break;
-        case ERROR:     // 故障
-            break;
-        default:
-            break;
-    }
-    return returnValue;
-}
-
-/**
- * 把数据导入到sheet表，可以指定从特定行特定列开始
- * @param fileName
- * @param sheetname
- * @param ls
- * @param rowstart
- * @param cloumnstart
- */
-public static void importData(String fileName,String sheetname, List<String[]> ls, int rowstart, int cloumnstart,String xiangmu){
+	/**
+	 * 将单元格内容转换为字符串
+	 * @param cell
+	 * @return
+	 */
+	private static String convertCellValueToString(Cell cell) {
+	    if(cell==null){
+	        return null;
+	    }
+	    String returnValue = null;
+	    switch (cell.getCellType()) {
+	        case NUMERIC:   //数字
+	            Double doubleValue = cell.getNumericCellValue();
 	
-	Workbook workbook = null;
-	FileInputStream inputStream =null;
-	Sheet sheet = null;
-	// 以文件的形式输出工作簿对象
-    FileOutputStream fileOut = null;
-//    POIFSFileSystem poi = null;
-//    XSSFFactory poi1 = null;
-	try {
-        // 获取Excel后缀名
-//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-        // 获取Excel文件
-        File excelFile = new File(fileName);
-        if (!excelFile.exists()) {
-//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
-        	excelFile.createNewFile();
-        	workbook = new SXSSFWorkbook();
-        	sheet =workbook.createSheet(sheetname);
-        }else {
-        	inputStream = new FileInputStream(excelFile);
-        	
-//        	if (fileType.equalsIgnoreCase(XLS)) {
-//        		poi = new POIFSFileSystem(inputStream);
-//				workbook = new HSSFWorkbook(poi);
-//			}else if (fileType.equalsIgnoreCase(XLSX)) {
-//				poi1 = new 
-//				workbook = new XSSFWorkbook(poi);
-//			}
-        	workbook = new XSSFWorkbook(inputStream);
-        	sheet = workbook.getSheet(sheetname);
-        	
-//			workbook = getWorkbook(inputStream, fileType);
-//			sheet = workbook.getSheet(sheetname);
+	            // 格式化科学计数法，取一位整数
+	            DecimalFormat df = new DecimalFormat("0");
+	            returnValue = df.format(doubleValue);
+	            break;
+	        case STRING:    //字符串
+	            returnValue = cell.getStringCellValue();
+	            break;
+	        case BOOLEAN:   //布尔
+	            Boolean booleanValue = cell.getBooleanCellValue();
+	            returnValue = booleanValue.toString();
+	            break;
+	        case BLANK:     // 空值
+	            break;
+	        case FORMULA:   // 公式
+	            returnValue = cell.getCellFormula();
+	            break;
+	        case ERROR:     // 故障
+	            break;
+	        default:
+	            break;
+	    }
+	    return returnValue;
+	}
+	
+	/**
+	 * 把数据导入到sheet表，可以指定从特定行特定列开始
+	 * @param fileName
+	 * @param sheetname
+	 * @param ls
+	 * @param rowstart
+	 * @param cloumnstart
+	 */
+	public static void importData(String fileName,String sheetname, List<String[]> ls, int rowstart, int cloumnstart,String xiangmu){
+		
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+	//    POIFSFileSystem poi = null;
+	//    XSSFFactory poi1 = null;
+		try {
+	        // 获取Excel后缀名
+	//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+	        // 获取Excel文件
+	        File excelFile = new File(fileName);
+	        if (!excelFile.exists()) {
+	//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
+	        	excelFile.createNewFile();
+	        	workbook = new SXSSFWorkbook();
+	        	sheet =workbook.createSheet(sheetname);
+	        }else {
+	        	inputStream = new FileInputStream(excelFile);
+	        	
+	//        	if (fileType.equalsIgnoreCase(XLS)) {
+	//        		poi = new POIFSFileSystem(inputStream);
+	//				workbook = new HSSFWorkbook(poi);
+	//			}else if (fileType.equalsIgnoreCase(XLSX)) {
+	//				poi1 = new 
+	//				workbook = new XSSFWorkbook(poi);
+	//			}
+	        	workbook = new XSSFWorkbook(inputStream);
+	        	sheet = workbook.getSheet(sheetname);
+	        	
+	//			workbook = getWorkbook(inputStream, fileType);
+	//			sheet = workbook.getSheet(sheetname);
+			}
+	//        sheet.setDefaultColumnWidth(4000);
+	//        sheet.setDefaultRowHeight((short) 300);
+	    	
+	        for(int i=0;i < ls.size(); i++) {
+	        	String line[] = ls.get(i);
+	        	Row row = sheet.createRow(rowstart++);
+	        	Cell cell = null;
+	        	for (int j = 0; j < line.length; j++) {
+	        		String tmp= line[j];
+	        		if(tmp.contains("&amp;")) {
+	        			tmp = tmp.replace("&amp;", "&");
+	        		}
+	        		
+	        		if (xiangmu.equals("福州软件部")&&sheetname.equals("Y产品问题")&&j==3) {
+	        			tmp="福州软件部";
+					}else if (xiangmu.equals("系统软件部")&&sheetname.equals("Y产品问题")&&j==3) {
+						tmp="系统软件部";
+					}else if (xiangmu.equals("智能软件部")&&sheetname.equals("Y产品问题")&&j==3) {
+						tmp="智能软件部";
+					}
+	        		
+	        		cell = row.createCell(j+cloumnstart);
+	        		cell.setCellValue(tmp);
+	        		if (j==1) {
+	        			//设置超链接
+						get_link(workbook, cell, sheetname, tmp);
+					}
+	        	}
+	        	
+	        }
+	        
+	        fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+	        } catch (Exception e) {
+	            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+	        } finally {
+	            try {
+	                if (null != fileOut) {
+	                    fileOut.close();
+	                }
+	                if (null != inputStream) {
+						inputStream.close();
+					}
+	                if (null != workbook) {
+	                    workbook.close();
+	                }
+	            } catch (IOException e) {
+	                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
+	            }
 		}
-//        sheet.setDefaultColumnWidth(4000);
-//        sheet.setDefaultRowHeight((short) 300);
-    	
-        for(int i=0;i < ls.size(); i++) {
-        	String line[] = ls.get(i);
-        	Row row = sheet.createRow(rowstart++);
-        	Cell cell = null;
-        	for (int j = 0; j < line.length; j++) {
-        		String tmp= line[j];
-        		if(tmp.contains("&amp;")) {
-        			tmp = tmp.replace("&amp;", "&");
-        		}
-        		
-        		if (xiangmu.equals("福州软件部")&&sheetname.equals("Y产品问题")&&j==3) {
-        			tmp="福州软件部";
-				}else if (xiangmu.equals("系统软件部")&&sheetname.equals("Y产品问题")&&j==3) {
-					tmp="系统软件部";
-				}else if (xiangmu.equals("智能软件部")&&sheetname.equals("Y产品问题")&&j==3) {
-					tmp="智能软件部";
-				}
-        		
-        		cell = row.createCell(j+cloumnstart);
-        		cell.setCellValue(tmp);
-        		if (j==1) {
-        			//设置超链接
-					get_link(workbook, cell, sheetname, tmp);
-				}
-        	}
-        	
-        }
-        
-        fileOut = new FileOutputStream(excelFile);
-        workbook.write(fileOut);
-        fileOut.flush();
-        } catch (Exception e) {
-            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
-        } finally {
-            try {
-                if (null != fileOut) {
-                    fileOut.close();
-                }
-                if (null != inputStream) {
-					inputStream.close();
-				}
-                if (null != workbook) {
-                    workbook.close();
-                }
-            } catch (IOException e) {
-                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
-            }
-	}
-
-}
-
-/**
- * 指定更新特定cell的值
- * @param fileName
- * @param sheetname
- * @param value
- * @param rowindex
- * @param cloumnindex
- */
-public static void updatacell(String fileName,String sheetname, String value, int rowindex, int cloumnindex){
 	
-	Workbook workbook = null;
-	FileInputStream inputStream =null;
-	Sheet sheet = null;
-	// 以文件的形式输出工作簿对象
-    FileOutputStream fileOut = null;
-    CellStyle cs =null;
-//    POIFSFileSystem poi = null;
-//    XSSFFactory poi1 = null;
-	try {
-        // 获取Excel后缀名
-//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-        // 获取Excel文件
-        File excelFile = new File(fileName);
-        if (!excelFile.exists()) {
-//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
-        	excelFile.createNewFile();
-        	workbook = new SXSSFWorkbook();
-        	sheet =workbook.createSheet(sheetname);
-        }else {
-        	inputStream = new FileInputStream(excelFile);
-        	
-//        	if (fileType.equalsIgnoreCase(XLS)) {
-//        		poi = new POIFSFileSystem(inputStream);
-//				workbook = new HSSFWorkbook(poi);
-//			}else if (fileType.equalsIgnoreCase(XLSX)) {
-//				poi1 = new 
-//				workbook = new XSSFWorkbook(poi);
-//			}
-        	workbook = new XSSFWorkbook(inputStream);
-        	sheet = workbook.getSheet(sheetname);
-        	cs = workbook.createCellStyle();
-        	//对齐方式设置
-        	cs.setAlignment(HorizontalAlignment.CENTER);
-            //边框颜色和宽度设置
-        	cs.setBorderBottom(BorderStyle.THIN);
-        	cs.setBottomBorderColor(IndexedColors.BLACK.getIndex()); // 下边框
-        	cs.setBorderLeft(BorderStyle.THIN);
-        	cs.setLeftBorderColor(IndexedColors.BLACK.getIndex()); // 左边框
-        	cs.setBorderRight(BorderStyle.THIN);
-        	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
-        	cs.setBorderTop(BorderStyle.THIN);
-        	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
-            //设置背景颜色
-//        	cs.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-//        	cs.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-//			workbook = getWorkbook(inputStream, fileType);
-//			sheet = workbook.getSheet(sheetname);
+	}
+	
+	/**
+	 * 指定更新特定cell的值
+	 * @param fileName
+	 * @param sheetname
+	 * @param value
+	 * @param rowindex
+	 * @param cloumnindex
+	 */
+	public static void updatacell(String fileName,String sheetname, String value, int rowindex, int cloumnindex){
+		
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+	    CellStyle cs =null;
+	//    POIFSFileSystem poi = null;
+	//    XSSFFactory poi1 = null;
+		try {
+	        // 获取Excel后缀名
+	//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+	        // 获取Excel文件
+	        File excelFile = new File(fileName);
+	        if (!excelFile.exists()) {
+	//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
+	        	excelFile.createNewFile();
+	        	workbook = new SXSSFWorkbook();
+	        	sheet =workbook.createSheet(sheetname);
+	        }else {
+	        	inputStream = new FileInputStream(excelFile);
+	        	
+	//        	if (fileType.equalsIgnoreCase(XLS)) {
+	//        		poi = new POIFSFileSystem(inputStream);
+	//				workbook = new HSSFWorkbook(poi);
+	//			}else if (fileType.equalsIgnoreCase(XLSX)) {
+	//				poi1 = new 
+	//				workbook = new XSSFWorkbook(poi);
+	//			}
+	        	workbook = new XSSFWorkbook(inputStream);
+	        	sheet = workbook.getSheet(sheetname);
+	        	cs = setCellStyle(workbook);
+//	        	cs = workbook.createCellStyle();
+//	        	//对齐方式设置
+//	        	cs.setAlignment(HorizontalAlignment.CENTER);
+//	            //边框颜色和宽度设置
+//	        	cs.setBorderBottom(BorderStyle.THIN);
+//	        	cs.setBottomBorderColor(IndexedColors.BLACK.getIndex()); // 下边框
+//	        	cs.setBorderLeft(BorderStyle.THIN);
+//	        	cs.setLeftBorderColor(IndexedColors.BLACK.getIndex()); // 左边框
+//	        	cs.setBorderRight(BorderStyle.THIN);
+//	        	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
+//	        	cs.setBorderTop(BorderStyle.THIN);
+//	        	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
+	            //设置背景颜色
+	//        	cs.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+	//        	cs.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+	//			workbook = getWorkbook(inputStream, fileType);
+	//			sheet = workbook.getSheet(sheetname);
+			}
+	        
+	        //获取行，然后对单元格赋值
+	        Row row = sheet.getRow(rowindex+1);
+	        Cell cell = row.createCell(cloumnindex);
+	        cell.setCellValue(value);
+	        cell.setCellStyle(cs);
+	        
+	        // 把文件写入到excel
+	        fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+	        } catch (Exception e) {
+	            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+	        } finally {
+	            try {
+	                if (null != fileOut) {
+	                    fileOut.close();
+	                }
+	                if (null != inputStream) {
+						inputStream.close();
+					}
+	                if (null != workbook) {
+	                    workbook.close();
+	                }
+	            } catch (IOException e) {
+	                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
+	            }
 		}
-        
-        //获取行，然后对单元格赋值
-        Row row = sheet.getRow(rowindex+1);
-        Cell cell = row.createCell(cloumnindex);
-        cell.setCellValue(value);
-        cell.setCellStyle(cs);
-        
-        // 把文件写入到excel
-        fileOut = new FileOutputStream(excelFile);
-        workbook.write(fileOut);
-        fileOut.flush();
-        } catch (Exception e) {
-            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
-        } finally {
-            try {
-                if (null != fileOut) {
-                    fileOut.close();
-                }
-                if (null != inputStream) {
-					inputStream.close();
-				}
-                if (null != workbook) {
-                    workbook.close();
-                }
-            } catch (IOException e) {
-                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
-            }
+	
 	}
 
-}
-
-/**
- * 更新对应xlsx的单元格的内容
- * @param fileName
- * @param sheetname
- * @param ls
- * @param rowindex
- * @param cloumnindex
- */
-public static void updatacell(String fileName,String sheetname, List<String[]> ls, int rowindex, int cloumnindex){
-	Workbook workbook = null;
-	FileInputStream inputStream =null;
-	Sheet sheet = null;
-	// 以文件的形式输出工作簿对象
-    FileOutputStream fileOut = null;
-//    POIFSFileSystem poi = null;
-//    XSSFFactory poi1 = null;
-    CellStyle cs =null;
-	try {
-        // 获取Excel后缀名
-//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
-        // 获取Excel文件
-        File excelFile = new File(fileName);
-        if (!excelFile.exists()) {
-//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
-        	excelFile.createNewFile();
-        	workbook = new SXSSFWorkbook();
-        	sheet =workbook.createSheet(sheetname);
-        }else {
-        	inputStream = new FileInputStream(excelFile);
-        	workbook = new XSSFWorkbook(inputStream);
-        	XSSFFont font = new XSSFFont();
-        	sheet = workbook.getSheet(sheetname);
-        	cs = workbook.createCellStyle();
-        	//粗体显示
-        	font.setBold(true);
-        	cs.setFont(font);
-        	//对齐方式设置
-        	cs.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
-        	cs .setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
-            //边框颜色和宽度设置
-        	cs.setBorderBottom(BorderStyle.THIN);
-        	cs.setBottomBorderColor(IndexedColors.BLACK.getIndex()); // 下边框
-        	cs.setBorderLeft(BorderStyle.THIN);
-        	cs.setLeftBorderColor(IndexedColors.BLACK.getIndex()); // 左边框
-        	cs.setBorderRight(BorderStyle.THIN);
-        	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
-        	cs.setBorderTop(BorderStyle.THIN);
-        	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
-        	
-        	
-        	
-//			workbook = getWorkbook(inputStream, fileType);
-//			sheet = workbook.getSheet(sheetname);
+	/**
+	 * 更新对应xlsx的单元格的内容
+	 * @param fileName
+	 * @param sheetname
+	 * @param ls
+	 * @param rowindex
+	 * @param cloumnindex
+	 */
+	public static void updatacell(String fileName,String sheetname, List<String[]> ls, int rowindex, int cloumnindex){
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+	//    POIFSFileSystem poi = null;
+	//    XSSFFactory poi1 = null;
+	    CellStyle cs = null;
+		try {
+	        // 获取Excel后缀名
+	//        String fileType = fileName.substring(fileName.lastIndexOf(".") + 1, fileName.length());
+	        // 获取Excel文件
+	        File excelFile = new File(fileName);
+	        if (!excelFile.exists()) {
+	//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
+	        	excelFile.createNewFile();
+	        	workbook = new SXSSFWorkbook();
+	        	sheet =workbook.createSheet(sheetname);
+	        }else {
+	        	inputStream = new FileInputStream(excelFile);
+	        	workbook = new XSSFWorkbook(inputStream);
+	        	sheet = workbook.getSheet(sheetname);
+	//			workbook = getWorkbook(inputStream, fileType);
+	//			sheet = workbook.getSheet(sheetname);
+			}
+	        cs = setCellStyle(workbook);
+	//        sheet.setDefaultColumnWidth(4000);
+	//        sheet.setDefaultRowHeight((short) 300);
+	    	
+	        for(int i=0;i < ls.size(); i++) {
+	        	String line[] = ls.get(i);
+	//        	Row row = sheet.createRow(rowindex++);
+	        	Row row = sheet.getRow(i+rowindex+1);
+	        	Cell cell = null;
+	        	for (int j = 0; j < line.length; j++) {
+	        		cell = row.createCell(j+cloumnindex);
+	        		String data = line[j];
+	        		
+	        		Boolean isNum = false;//data是否为数值型
+	                Boolean isInteger=false;//data是否为整数
+	                Boolean isPercent=false;//data是否为百分数
+	                if (data != null || "".equals(data)) {
+	                    //判断data是否为数值型
+	                    isNum = data.toString().matches("^(-?\\d+)(\\.\\d+)?$");
+	                    //判断data是否为整数（小数部分是否为0）
+	                    isInteger=data.toString().matches("^[-\\+]?[\\d]*$");
+	                    //判断data是否为百分数（是否包含“%”）
+	                    isPercent=data.toString().contains("%");
+	                }
+	                
+	              //如果单元格内容是数值类型，涉及到金钱（金额、本、利），则设置cell的类型为数值型，设置data的类型为数值类型
+	                if (isNum && !isPercent) {
+	                	
+	                	XSSFDataFormat df = (XSSFDataFormat) workbook.createDataFormat(); // 此处设置数据格式
+	                    if (isInteger) {
+	                        cs.setDataFormat(df.getFormat("#,#0"));//数据格式只显示整数
+	                    }else{
+	                    	cs.setDataFormat(df.getFormat("#,##0.00"));//保留两位小数点
+	                    }                   
+	                    // 设置单元格格式
+	                    cell.setCellStyle(cs);
+	                    // 设置单元格内容为double类型
+	                    cell.setCellValue(Double.parseDouble(data.toString()));
+	                } else {
+	                    cell.setCellStyle(cs);
+	                    // 设置单元格内容为字符型
+	                    cell.setCellValue(data.toString());
+	                }
+	//        		
+	//        		cell.setCellValue(data);
+	//        		cell.setCellStyle(cs);
+	        	}
+	        	
+	        }
+	        
+	        
+	        fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+	        } catch (Exception e) {
+	            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+	        } finally {
+	            try {
+	                if (null != fileOut) {
+	                    fileOut.close();
+	                }
+	                if (null != inputStream) {
+						inputStream.close();
+					}
+	                if (null != workbook) {
+	                    workbook.close();
+	                }
+	            } catch (IOException e) {
+	                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
+	            }
 		}
-//        sheet.setDefaultColumnWidth(4000);
-//        sheet.setDefaultRowHeight((short) 300);
-    	
-        for(int i=0;i < ls.size(); i++) {
-        	String line[] = ls.get(i);
-//        	Row row = sheet.createRow(rowindex++);
-        	Row row = sheet.getRow(i+rowindex+1);
-        	Cell cell = null;
-        	for (int j = 0; j < line.length; j++) {
-        		cell = row.createCell(j+cloumnindex);
-        		String data = line[j];
-        		
-        		Boolean isNum = false;//data是否为数值型
-                Boolean isInteger=false;//data是否为整数
-                Boolean isPercent=false;//data是否为百分数
-                if (data != null || "".equals(data)) {
-                    //判断data是否为数值型
-                    isNum = data.toString().matches("^(-?\\d+)(\\.\\d+)?$");
-                    //判断data是否为整数（小数部分是否为0）
-                    isInteger=data.toString().matches("^[-\\+]?[\\d]*$");
-                    //判断data是否为百分数（是否包含“%”）
-                    isPercent=data.toString().contains("%");
-                }
-                
-              //如果单元格内容是数值类型，涉及到金钱（金额、本、利），则设置cell的类型为数值型，设置data的类型为数值类型
-                if (isNum && !isPercent) {
-                	
-                	XSSFDataFormat df = (XSSFDataFormat) workbook.createDataFormat(); // 此处设置数据格式
-                    if (isInteger) {
-                        cs.setDataFormat(df.getFormat("#,#0"));//数据格式只显示整数
-                    }else{
-                    	cs.setDataFormat(df.getFormat("#,##0.00"));//保留两位小数点
-                    }                   
-                    // 设置单元格格式
-                    cell.setCellStyle(cs);
-                    // 设置单元格内容为double类型
-                    cell.setCellValue(Double.parseDouble(data.toString()));
-                } else {
-                    cell.setCellStyle(cs);
-                    // 设置单元格内容为字符型
-                    cell.setCellValue(data.toString());
-                }
-//        		
-//        		cell.setCellValue(data);
-//        		cell.setCellStyle(cs);
-        	}
-        	
-        }
-        
-        
-        fileOut = new FileOutputStream(excelFile);
-        workbook.write(fileOut);
-        fileOut.flush();
-        } catch (Exception e) {
-            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
-        } finally {
-            try {
-                if (null != fileOut) {
-                    fileOut.close();
-                }
-                if (null != inputStream) {
-					inputStream.close();
-				}
-                if (null != workbook) {
-                    workbook.close();
-                }
-            } catch (IOException e) {
-                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
-            }
+	
 	}
 
-}
 
-
-/**
- * 设置workbook对应的cell的超链接
- * @param workbook
- * @param cell
- * @param type
- * @param bugid
- */
-public static void get_link(Workbook workbook, Cell cell, String type, String bugid) {
-	CreationHelper creationHelper = workbook.getCreationHelper();
-	Hyperlink link = creationHelper.createHyperlink(HyperlinkType.URL);
-	
-	//设置超链接的字体
-	CellStyle hlink_style = workbook.createCellStyle();  
-	Font hlink_font = workbook.createFont();  
-    hlink_font.setUnderline(Font.U_SINGLE);  
-    hlink_font.setColor(IndexedColors.BLUE.getIndex());  
-    hlink_style.setFont(hlink_font);  
-	
-    //设置超链接的链接地址
-	String url ="";
-	if(type.equals("Y产品问题")||type.equals("Y每月预期交付需求")||type.equals("Y当月预期交付需求已交付需求")||type.equals("Y每月遗留需求")||type.equals("Y总遗留需求")) {
-		url = "http://192.168.10.27:81/zentao/story-view-"+bugid+".html";
-	}else if (type.equals("Y版本提测")) {
-		url = "http://192.168.10.27:81/zentao/testtask-view-"+bugid+".html";
-	}else {
-		url = "http://192.168.10.27:81/zentao/bug-view-"+bugid+".html";
+	/**
+	 * 设置workbook对应的cell的超链接
+	 * @param workbook
+	 * @param cell
+	 * @param type
+	 * @param bugid
+	 */
+	public static void get_link(Workbook workbook, Cell cell, String type, String bugid) {
+		CreationHelper creationHelper = workbook.getCreationHelper();
+		Hyperlink link = creationHelper.createHyperlink(HyperlinkType.URL);
+		
+		//设置超链接的字体
+		CellStyle hlink_style = workbook.createCellStyle();  
+		Font hlink_font = workbook.createFont();  
+	    hlink_font.setUnderline(Font.U_SINGLE);  
+	    hlink_font.setColor(IndexedColors.BLUE.getIndex());  
+	    hlink_style.setFont(hlink_font);  
+		
+	    //设置超链接的链接地址
+		String url ="";
+		if(type.equals("Y产品问题")||type.equals("Y每月预期交付需求")||type.equals("Y当月预期交付需求已交付需求")||type.equals("Y每月遗留需求")||type.equals("Y总遗留需求")) {
+			url = "http://192.168.10.27:81/zentao/story-view-"+bugid+".html";
+		}else if (type.equals("Y版本提测")) {
+			url = "http://192.168.10.27:81/zentao/testtask-view-"+bugid+".html";
+		}else {
+			url = "http://192.168.10.27:81/zentao/bug-view-"+bugid+".html";
+		}
+		
+		link.setAddress(url);
+		cell.setHyperlink(link);
+		cell.setCellStyle(hlink_style);
 	}
 	
-	link.setAddress(url);
-	cell.setHyperlink(link);
-	cell.setCellStyle(hlink_style);
-}
+	public static void setCellFormula(String fileName,String sheetname, String value, int rowindex, int cloumnindex){
+		Workbook workbook = null;
+		FileInputStream inputStream =null;
+		Sheet sheet = null;
+		// 以文件的形式输出工作簿对象
+	    FileOutputStream fileOut = null;
+//	    CellStyle cs = null;
+		try {
+
+	        File excelFile = new File(fileName);
+	        if (!excelFile.exists()) {
+	//        	假如工作簿不存在则创建一个，假如存在的话就获取对应的工作普
+	        	excelFile.createNewFile();
+	        	workbook = new SXSSFWorkbook();
+	        	sheet =workbook.createSheet(sheetname);
+	        }else {
+	        	inputStream = new FileInputStream(excelFile);
+	        	workbook = new XSSFWorkbook(inputStream);
+	        	sheet = workbook.getSheet(sheetname);
+			}
+//	        cs = setCellStyle(workbook);
+	        
+	        Cell cell = sheet.getRow(rowindex).createCell(cloumnindex);
+//	        cell.setCellStyle(cs);
+	        cell.setCellFormula(value);
+//	        cell.setCellValue(value);
+	        sheet.setForceFormulaRecalculation(true);
+	        
+	        fileOut = new FileOutputStream(excelFile);
+	        workbook.write(fileOut);
+	        fileOut.flush();
+	        } catch (Exception e) {
+	            System.out.println("输出Excel时发生错误，错误原因：" + e.getMessage());
+	        } finally {
+	            try {
+	                if (null != fileOut) {
+	                    fileOut.close();
+	                }
+	                if (null != inputStream) {
+						inputStream.close();
+					}
+	                if (null != workbook) {
+	                    workbook.close();
+	                }
+	            } catch (IOException e) {
+	                System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
+	            }
+		}
+	
+	}
 
 	/**
 	 * 删除对应xlsx中的数据，从执行的start_row开始，从0开始
@@ -601,9 +635,15 @@ public static void get_link(Workbook workbook, Cell cell, String type, String bu
 	}
 	
 	/**
-	 * 
+	 * 合并单元格
+	 * @param fileName 合并的excel的路径
+	 * @param sheetname 合并excel的sheet名字
+	 * @param firstRow 合并单元格开始行，从0开始
+	 * @param lastRow 合并单元格结束行，从0开始
+	 * @param firstCol 合并单元格开始列，从0开始
+	 * @param lastCol 合并单元格结束列，从0开始
 	 */
-	public static void merge_cell(String fileName,String sheetname) {
+	public static void merge_cell(String fileName,String sheetname,int firstRow, int lastRow, int firstCol, int lastCol) {
 		Workbook workbook = null;
 		FileInputStream inputStream =null;
 		Sheet sheet = null;
@@ -616,8 +656,19 @@ public static void get_link(Workbook workbook, Cell cell, String type, String bu
 			 inputStream = new FileInputStream(excelFile);
 			workbook = getWorkbook(inputStream, excel_Name.substring(lastdot+1));
 			sheet = workbook.getSheet(sheetname);
-			CellRangeAddress region = new CellRangeAddress(1,1,2,2);
-			sheet.addMergedRegion(region);
+//			Cell cell = sheet.getRow(firstRow).createCell(firstCol);
+//			CellStyle cs = setCellStyle(workbook);
+//			cell.setCellStyle(cs);
+//			cell.setCellValue(cellvalue);
+			CellRangeAddress region = new CellRangeAddress(firstRow,lastRow,firstCol,lastCol);
+			try {
+				sheet.addMergedRegion(region);
+			} catch (Exception e) {
+//				System.out.println("已经进行单元格合并了");
+			}
+			
+			setBorderStyle(sheet, region);
+			
 			fileOut = new FileOutputStream(excelFile);
 	        workbook.write(fileOut);
 	        fileOut.flush();
@@ -639,8 +690,104 @@ public static void get_link(Workbook workbook, Cell cell, String type, String bu
                 System.out.println("关闭输出流时发生错误，错误原因：" + e.getMessage());
             }
 		}
-	
-		
+			
 	}
+	
+	/**
+	 * 设置cell的样式
+	 * @param workbook 对应excel的workbook
+	 * @return
+	 */
+	public static CellStyle setCellStyle(Workbook workbook) {
+		CellStyle cs =null;
+		Font font = workbook.createFont();
+		cs = workbook.createCellStyle();
+		//设置自动换行
+		cs.setWrapText(true);
+    	//粗体显示
+    	font.setBold(true);
+    	font.setFontName("微软雅黑");
+//    	font.setColor(Font.COLOR_RED);    	
+    	//设置字体大小
+    	font.setFontHeightInPoints((short) 11);
+    	
+    	cs.setFont(font);
+    	//对齐方式设置
+    	cs.setAlignment(HorizontalAlignment.CENTER);//设置水平居中
+    	cs .setVerticalAlignment(VerticalAlignment.CENTER);//设置垂直居中
+        //边框颜色和宽度设置
+    	cs.setBorderBottom(BorderStyle.THIN);
+    	cs.setBottomBorderColor(IndexedColors.BLACK.getIndex()); // 下边框
+    	cs.setBorderLeft(BorderStyle.THIN);
+    	cs.setLeftBorderColor(IndexedColors.BLACK.getIndex()); // 左边框
+    	cs.setBorderRight(BorderStyle.THIN);
+    	cs.setRightBorderColor(IndexedColors.BLACK.getIndex()); // 右边框
+    	cs.setBorderTop(BorderStyle.THIN);
+    	cs.setTopBorderColor(IndexedColors.BLACK.getIndex()); // 上边框
+    	
+    	return cs;
+	}
+	
+	/**
+     * 设置合并单元格边框 - 线条
+     * */
+    private static void setBorderStyle(Sheet sheet, CellRangeAddress region) {
+        // 合并单元格左边框样式
+        RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
+//        RegionUtil.setLeftBorderColor(IndexedColors.BLUE.getIndex(), region, sheet);
+        RegionUtil.setLeftBorderColor(IndexedColors.BLACK.getIndex(), region, sheet);
+        // 合并单元格上边框样式
+        RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
+        RegionUtil.setTopBorderColor(IndexedColors.BLACK.getIndex(), region, sheet);
 
+        // 合并单元格右边框样式
+        RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
+        RegionUtil.setRightBorderColor(IndexedColors.BLACK.getIndex(), region, sheet);
+
+        // 合并单元格下边框样式
+        RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
+        RegionUtil.setBottomBorderColor(IndexedColors.BLACK.getIndex(), region, sheet);
+    }
+    
+	/**
+	 * excel 的列字符转数字
+	 * @param col
+	 * @return
+	 */
+    public static int excelToNum(String col) { //  "AAA"
+		if (col == null)
+			return -1;
+		char[] chrs = col.toUpperCase().toCharArray(); // 转为大写字母组成的 char数组
+		int length = chrs.length;
+		int ret = -1;
+		for (int i = 0; i < length; i++) {
+			ret += (chrs[i] - 'A' + 1) * Math.pow(26, length - i - 1); // 当做26进制来算 AAA=111 26^2+26^1+26^0
+		}
+		return ret;// 702; 从0开始的下标
+	}
+ 
+    /**
+     * excel 的列数字转字母
+     * @param index
+     * @return
+     */
+    public static String numToExcel(int index) {
+        int shang = 0;
+        int yu = 0;
+        List<Integer> list = new ArrayList<Integer>();   //10进制转26进制 倒序
+        while (true) {
+            shang = index / 26;
+            yu = index % 26;
+            index = shang;
+            list.add(yu);
+            if (shang == 0)
+                break;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int j = list.size() - 1; j >= 0; j--) {
+            sb.append((char) (list.get(j) + 'A' - (j > 1 ? 1 : j)));     //倒序拼接  序号转字符 非末位 序号减去 1
+        }
+        return sb.toString();
+    }
+    
 }
